@@ -1,6 +1,7 @@
-# Task Management System — Hashclick Week 3 + Week 4
+# Task Management System — Hashclick Solutions
 
-A full-stack **Task Management System** built with Spring Boot 3, Spring Security, JWT authentication, Role-Based Access Control, and a responsive frontend UI.
+> **Training Program | Week 3 + Week 4**
+> Java Developer Trainee — Jeevan Kumar Gujja
 
 ---
 
@@ -25,121 +26,239 @@ A full-stack **Task Management System** built with Spring Boot 3, Spring Securit
 
 ---
 
-## Week 3 Features
+---
 
-- JWT Authentication (Register / Login)
-- Task CRUD (Create, Read, Update, Delete)
-- Task filtering by status, priority, search
-- Due date support
-- Assign tasks to users
-- Role enum — `ROLE_USER` / `ROLE_ADMIN`
-- H2 in-memory database (dev)
-- MySQL ready (prod)
-- Responsive frontend UI
+# WEEK 3 — Core Task Management System
+
+> **Focus:** Build a secure REST API with JWT authentication and full Task CRUD
 
 ---
 
-## Week 4 Features (Advanced)
+## Week 3 — What Was Built
+
+### Authentication
+- User Registration (`/api/auth/register`)
+- User Login with JWT token (`/api/auth/login`)
+- BCrypt password encoding
+- JWT token validation on every request
+
+### Task Management (CRUD)
+- Create, Read, Update, Delete tasks
+- Assign tasks to users
+- Filter tasks by status
+- Search tasks by title/description
+- Due date support
+
+### Data Models
+- **User** — id, name, email, password, role
+- **Task** — id, title, description, status, priority, dueDate, assignedTo, createdBy
+
+### Enums
+- **TaskStatus** — `TODO` | `IN_PROGRESS` | `DONE`
+- **Priority** — `LOW` | `MEDIUM` | `HIGH`
+- **Role** — `ROLE_USER` | `ROLE_ADMIN`
+
+### Security
+- Stateless JWT-based authentication
+- Spring Security filter chain
+- Protected routes (all `/api/tasks/**` require token)
+
+### Frontend UI
+- Login / Register page
+- Task dashboard with stats bar
+- Create / Edit task modal
+- Status update modal
+- Filter by status, priority, search
+
+### Database
+- H2 in-memory (development)
+- MySQL-ready configuration (production)
+
+---
+
+## Week 3 — Files Added
+
+```
+controller/  AuthController.java, TaskController.java
+service/     AuthService.java, TaskService.java
+model/       User.java, Task.java
+dto/         AuthResponse, LoginRequest, RegisterRequest, TaskRequest, TaskResponse
+repository/  UserRepository.java, TaskRepository.java
+security/    JwtAuthFilter, JwtUtil, SecurityConfig, UserDetailsServiceImpl
+enums/       Role.java, Priority.java, TaskStatus.java
+exception/   GlobalExceptionHandler.java, ResourceNotFoundException.java
+resources/   application.properties
+static/      index.html (frontend)
+```
+
+---
+
+## Week 3 — API Endpoints
+
+### Authentication (No token required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register a new user |
+| POST | `/api/auth/login` | Login and receive JWT token |
+
+### Tasks (JWT token required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/tasks` | Create a new task |
+| GET | `/api/tasks` | Get all tasks |
+| GET | `/api/tasks/{id}` | Get task by ID |
+| GET | `/api/tasks/my` | Get my assigned tasks |
+| GET | `/api/tasks/status/{status}` | Filter tasks by status |
+| PUT | `/api/tasks/{id}` | Update full task |
+| PATCH | `/api/tasks/{id}/status` | Update task status only |
+| PATCH | `/api/tasks/{id}/assign` | Assign task to a user |
+| DELETE | `/api/tasks/{id}` | Delete a task |
+
+---
+
+---
+
+# WEEK 4 — Advanced Features + Deployment
+
+> **Focus:** RBAC enforcement, notifications, admin panel, Swagger docs, cloud deployment
+
+---
+
+## Week 4 — What Was Added
 
 ### 1. Role-Based Access Control (RBAC)
-- `@PreAuthorize` enforced on all endpoints
-- **ADMIN** — sees all tasks, manages users, assigns tasks, views dashboard stats
-- **USER** — sees only their own tasks (created or assigned)
-- Admin-only endpoints secured at both controller and security config level
+- Added `@PreAuthorize` annotations on all endpoints
+- **ADMIN** — sees all tasks, manages all users, assigns tasks, views stats
+- **USER** — sees only their own tasks (created or assigned to them)
+- Admin-only routes locked at both controller level and security config
+- `PATCH /api/tasks/{id}/assign` — restricted to ADMIN only
 
-### 2. Admin Panel (Frontend)
-- Visible only to ADMIN users after login
-- Lists all registered users with ID, Name, Email, Role, Task count
-- **Promote/Demote** user roles (Make Admin / Make User)
-- **Delete** users directly from the UI
+### 2. Admin Controller & Service
+- New `/api/admin/**` endpoints (ADMIN only)
+- List all users with task counts
+- Change user roles (promote/demote)
+- Delete users
+- Dashboard statistics (total users, tasks, overdue count)
 
-### 3. Overdue Task Detection
-- Every task response includes an `overdue` flag
-- Overdue tasks show a red **⏰ OVERDUE** badge on the card
-- Red border highlight on overdue task cards
-- Overdue counter in the stats bar
-- Filter dropdown to view **Overdue Only** tasks
+### 3. Admin Panel (Frontend)
+- Visible only when logged in as ADMIN
+- User management table — ID, Name, Email, Role, Task count
+- **Make Admin / Make User** buttons to toggle roles
+- **Delete user** button with confirmation
 
-### 4. Notifications
-- `NotificationService` — sends email on task assignment
+### 4. Overdue Task Detection
+- `overdue` flag added to every `TaskResponse`
+- Tasks past due date with status not DONE are marked overdue
+- Red **⏰ OVERDUE** badge shown on task cards
+- Red border highlight on overdue cards
+- Overdue counter added to stats bar (shown in red)
+- **Overdue Only** filter added to toolbar
+- Daily scheduled job runs at 8 AM — alerts users of overdue tasks
+
+### 5. Email Notifications
+- `NotificationService` — sends email when task is assigned
+- Async execution (`@Async`) — non-blocking
 - Logs to console by default (email disabled in dev)
-- Enable real emails by setting `notifications.email.enabled=true`
-- Daily scheduled job at 8 AM — alerts assignees of overdue tasks
+- Enable real emails via `notifications.email.enabled=true`
+- Overdue email alerts sent by scheduler daily
 
-### 5. Input Validation
-- `@Valid` on all request bodies
-- Field-level constraints (`@NotBlank`, `@Size`, `@Email`)
-- Global exception handler returns clean validation error messages
+### 6. Input Validation (Enhanced)
+- `@Valid` enforced on all request bodies
+- Field constraints — `@NotBlank`, `@Size`, `@Email`, `@FutureOrPresent`
+- Global exception handler returns structured validation error responses
 
-### 6. Swagger / OpenAPI Documentation
+### 7. Swagger / OpenAPI Documentation
 - Live API docs at `/swagger-ui.html`
-- All endpoints documented with descriptions
-- JWT Bearer auth integrated into Swagger UI
-- Endpoints grouped by: **Auth**, **Tasks**, **Admin**
+- All endpoints documented with summaries
+- JWT Bearer auth integrated — click **Authorize** and paste token
+- Endpoints grouped by tag: **Authentication**, **Tasks**, **Admin**
+- OpenAPI spec available at `/v3/api-docs`
 
-### 7. Deployment
-- `application-prod.properties` — production profile with env variable support
-- `railway.json` + `Procfile` — Railway cloud deployment config
-- `.env.example` — reference for all required environment variables
+### 8. Production Deployment Config
+- `application-prod.properties` — all values from environment variables
+- `railway.json` — Railway cloud deployment config
+- `Procfile` — process definition for deployment
+- `.env.example` — reference file for all required env vars
+- `@EnableScheduling` + `@EnableAsync` added to main application class
 
 ---
 
-## Project Structure
+## Week 4 — New Files Added
 
 ```
-src/main/java/com/hashclick/taskmanagement/
-├── TaskManagementApplication.java
-├── config/
-│   └── OpenApiConfig.java             ← Swagger/OpenAPI config (Week 4)
-├── controller/
-│   ├── AuthController.java            ← /api/auth/**
-│   ├── TaskController.java            ← /api/tasks/**
-│   └── AdminController.java           ← /api/admin/** (Week 4)
-├── dto/
-│   ├── AuthResponse.java
-│   ├── LoginRequest.java
-│   ├── RegisterRequest.java
-│   ├── TaskRequest.java
-│   ├── TaskResponse.java              ← overdue flag added (Week 4)
-│   ├── UserResponse.java              ← (Week 4)
-│   └── DashboardStats.java            ← (Week 4)
-├── enums/
-│   ├── Priority.java
-│   ├── Role.java
-│   └── TaskStatus.java
-├── exception/
-│   ├── GlobalExceptionHandler.java
-│   └── ResourceNotFoundException.java
-├── model/
-│   ├── User.java
-│   └── Task.java
-├── repository/
-│   ├── UserRepository.java
-│   └── TaskRepository.java            ← overdue queries added (Week 4)
-├── security/
-│   ├── JwtAuthFilter.java
-│   ├── JwtUtil.java
-│   ├── SecurityConfig.java            ← RBAC + Swagger rules (Week 4)
-│   └── UserDetailsServiceImpl.java
-└── service/
-    ├── AuthService.java
-    ├── TaskService.java               ← RBAC-aware logic (Week 4)
-    ├── AdminService.java              ← (Week 4)
-    ├── NotificationService.java       ← (Week 4)
-    └── OverdueAlertScheduler.java     ← (Week 4)
+controller/  AdminController.java
+service/     AdminService.java, NotificationService.java, OverdueAlertScheduler.java
+dto/         UserResponse.java, DashboardStats.java
+config/      OpenApiConfig.java
+resources/   application-prod.properties
+             railway.json, Procfile, .env.example
+```
+
+## Week 4 — Files Modified
+
+```
+controller/  TaskController.java       → added @PreAuthorize on all endpoints
+service/     TaskService.java          → RBAC-aware queries, overdue logic, notifications
+repository/  TaskRepository.java       → added overdue queries, countByStatus
+dto/         TaskResponse.java         → added overdue flag, assignedToId
+security/    SecurityConfig.java       → added Swagger routes, /api/admin/** rule
+             TaskManagementApplication → added @EnableScheduling, @EnableAsync
+resources/   application.properties   → added mail config, Swagger config
+static/      index.html               → admin panel, overdue badge, overdue filter, overdue stat
+pom.xml                               → added springdoc-openapi, spring-boot-starter-mail
 ```
 
 ---
 
-## How to Run Locally
+## Week 4 — API Endpoints
 
-### Prerequisites
-- Java 17+
-- Maven 3.8+ (or use `mvnw.cmd`)
+### Admin (ADMIN role only)
 
-### Run with H2 (no setup needed)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/users` | List all users |
+| GET | `/api/admin/users/{id}` | Get user by ID |
+| PATCH | `/api/admin/users/{id}/role?role=ADMIN` | Change user role |
+| DELETE | `/api/admin/users/{id}` | Delete a user |
+| GET | `/api/admin/stats` | Dashboard statistics |
+
+### New Task Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tasks/overdue` | Get overdue tasks |
+
+---
+
+## Week 4 — Access Control
+
+| Action | ROLE_USER | ROLE_ADMIN |
+|--------|-----------|------------|
+| Register / Login | ✅ | ✅ |
+| Create task | ✅ | ✅ |
+| View own tasks | ✅ | ✅ |
+| View ALL tasks | ❌ | ✅ |
+| Update own task | ✅ | ✅ |
+| Delete own task | ✅ | ✅ |
+| Assign task to user | ❌ | ✅ |
+| View overdue tasks | own only | all tasks |
+| Manage users | ❌ | ✅ |
+| View dashboard stats | ❌ | ✅ |
+
+---
+
+---
+
+# How to Run Locally
+
 ```bash
-mvn spring-boot:run
+# Build
+mvn clean package -DskipTests
+
+# Run
+java -jar target/task-management-1.0.0.jar
 ```
 
 | URL | Description |
@@ -149,94 +268,38 @@ mvn spring-boot:run
 | `http://localhost:8080/h2-console` | H2 Database Console |
 
 ### Make yourself Admin (H2 Console)
+```
+JDBC URL: jdbc:h2:mem:taskdb
+Username: sa
+Password: (leave empty)
+```
 ```sql
 UPDATE users SET role = 'ROLE_ADMIN' WHERE email = 'your@email.com';
 ```
 
 ---
 
-## API Endpoints
-
-### Authentication (No token required)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Login, receive JWT |
-
-### Tasks (JWT required)
-
-| Method | Endpoint | Role | Description |
-|--------|----------|------|-------------|
-| POST | `/api/tasks` | USER, ADMIN | Create a task |
-| GET | `/api/tasks` | USER, ADMIN | Get tasks (admin: all, user: own) |
-| GET | `/api/tasks/{id}` | USER, ADMIN | Get task by ID |
-| GET | `/api/tasks/my` | USER, ADMIN | Get my assigned tasks |
-| GET | `/api/tasks/overdue` | USER, ADMIN | Get overdue tasks |
-| GET | `/api/tasks/status/{status}` | USER, ADMIN | Filter by status |
-| PUT | `/api/tasks/{id}` | Creator, ADMIN | Update task |
-| PATCH | `/api/tasks/{id}/status` | Assignee, Creator, ADMIN | Update status |
-| PATCH | `/api/tasks/{id}/assign` | **ADMIN only** | Assign task to user |
-| DELETE | `/api/tasks/{id}` | Creator, ADMIN | Delete task |
-
-### Admin (ADMIN role only)
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/users` | List all users |
-| GET | `/api/admin/users/{id}` | Get user by ID |
-| PATCH | `/api/admin/users/{id}/role` | Change user role |
-| DELETE | `/api/admin/users/{id}` | Delete user |
-| GET | `/api/admin/stats` | Dashboard statistics |
-
----
-
-## Access Control Summary
-
-| Action | ROLE_USER | ROLE_ADMIN |
-|--------|-----------|------------|
-| Register / Login | ✅ | ✅ |
-| Create task | ✅ | ✅ |
-| View own tasks | ✅ | ✅ |
-| View all tasks | ❌ | ✅ |
-| Update own task | ✅ | ✅ |
-| Delete own task | ✅ | ✅ |
-| Assign task to user | ❌ | ✅ |
-| Manage users | ❌ | ✅ |
-| View dashboard stats | ❌ | ✅ |
-
----
-
-## Deployment (Railway)
+# Deployment (Railway)
 
 1. Push code to GitHub
-2. Connect repo to [Railway](https://railway.app)
-3. Add MySQL plugin
-4. Set environment variables:
+2. Go to [railway.app](https://railway.app) → Login with GitHub
+3. New Project → Deploy from GitHub repo
+4. Add MySQL plugin
+5. Set environment variables:
 
 ```
 SPRING_PROFILES_ACTIVE=prod
-DATABASE_URL=<railway mysql url>
-DB_USERNAME=<db user>
-DB_PASSWORD=<db password>
+DATABASE_URL=<from Railway MySQL plugin>
+DB_USERNAME=<from Railway MySQL plugin>
+DB_PASSWORD=<from Railway MySQL plugin>
 JWT_SECRET=<long random string>
 SWAGGER_ENABLED=true
 ```
 
 ---
 
-## Enums
-
-**TaskStatus:** `TODO` | `IN_PROGRESS` | `DONE`
-
-**Priority:** `LOW` | `MEDIUM` | `HIGH`
-
-**Role:** `ROLE_USER` | `ROLE_ADMIN`
-
----
-
 ## Author
 
 **Jeevan Kumar Gujja**
-Java Developer Trainee — Week 3 & Week 4
+Java Developer Trainee
 Hashclick Solutions LLC
