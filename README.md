@@ -6,7 +6,9 @@
 ---
 
 ## Live Demo
-> 🚀 Deployment in progress — link will be updated after Railway deployment
+🌐 **Live URL:** https://week3-taskmanagement.onrender.com
+
+🔗 **Swagger API Docs:** https://week3-taskmanagement.onrender.com/swagger-ui.html
 
 ---
 
