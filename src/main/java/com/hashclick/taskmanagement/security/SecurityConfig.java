@@ -38,6 +38,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/", "/index.html", "/*.html", "/*.js", "/*.css").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
+                                 "/v3/api-docs/**", "/api-docs/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .headers(h -> h.frameOptions(fo -> fo.disable()))

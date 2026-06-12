@@ -17,7 +17,9 @@ public class TaskResponse {
     private LocalDateTime updatedAt;
     private String assignedToName;
     private String assignedToEmail;
+    private Long assignedToId;
     private String createdByName;
+    private boolean overdue;
 
     public static TaskResponse from(Task task) {
         TaskResponse r = new TaskResponse();
@@ -33,7 +35,11 @@ public class TaskResponse {
         if (task.getAssignedTo() != null) {
             r.assignedToName  = task.getAssignedTo().getName();
             r.assignedToEmail = task.getAssignedTo().getEmail();
+            r.assignedToId    = task.getAssignedTo().getId();
         }
+        r.overdue = task.getDueDate() != null
+                    && task.getDueDate().isBefore(LocalDate.now())
+                    && task.getStatus() != TaskStatus.DONE;
         return r;
     }
 
@@ -47,5 +53,7 @@ public class TaskResponse {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public String getAssignedToName()   { return assignedToName; }
     public String getAssignedToEmail()  { return assignedToEmail; }
+    public Long getAssignedToId()       { return assignedToId; }
     public String getCreatedByName()    { return createdByName; }
+    public boolean isOverdue()          { return overdue; }
 }

@@ -173,7 +173,7 @@
 <div id="auth-page">
   <div class="auth-card">
     <h1>Task Management</h1>
-    <p>Hashclick Week 3 Project</p>
+    <p>Hashclick Solutions — Task Manager</p>
     <div class="tabs">
       <button class="tab-btn active" onclick="showTab('login')">Login</button>
       <button class="tab-btn" onclick="showTab('register')">Register</button>
@@ -236,6 +236,18 @@
       <div class="stat-card"><span class="stat-icon">⚙️</span><div><div class="stat-val" id="stat-inprogress">0</div><div class="stat-lbl">In Progress</div></div></div>
       <div class="stat-card"><span class="stat-icon">✅</span><div><div class="stat-val" id="stat-done">0</div><div class="stat-lbl">Done</div></div></div>
       <div class="stat-card"><span class="stat-icon">🔴</span><div><div class="stat-val" id="stat-high">0</div><div class="stat-lbl">High Priority</div></div></div>
+      <div class="stat-card"><span class="stat-icon">⏰</span><div><div class="stat-val" id="stat-overdue" style="color:var(--danger)">0</div><div class="stat-lbl">Overdue</div></div></div>
+    </div>
+
+    <!-- Admin Panel (visible to ADMIN only) -->
+    <div id="admin-panel" style="display:none;margin-bottom:1.5rem">
+      <div style="background:var(--card);border-radius:10px;padding:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <h3 style="font-size:1rem">Admin — User Management</h3>
+          <button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻ Refresh</button>
+        </div>
+        <div id="users-table" style="overflow-x:auto"></div>
+      </div>
     </div>
 
     <!-- Toolbar -->
@@ -252,6 +264,10 @@
         <option value="HIGH">High</option>
         <option value="MEDIUM">Medium</option>
         <option value="LOW">Low</option>
+      </select>
+      <select id="filter-overdue" onchange="applyFilters()">
+        <option value="">All Tasks</option>
+        <option value="overdue">Overdue Only</option>
       </select>
       <input type="text" id="filter-search" placeholder="Search tasks…" oninput="applyFilters()"/>
       <button class="btn btn-ghost btn-sm" onclick="loadTasks()">↻ Refresh</button>
@@ -350,6 +366,7 @@ let statusTaskId = null;
 /* ══════════════ INIT ══════════════ */
 window.onload = () => {
   if (token && currentUser) showApp();
+  else if (new URLSearchParams(location.search).get('tab') === 'register') showTab('register');
 };
 
 /* ══════════════ AUTH ══════════════ */
@@ -406,6 +423,9 @@ function showApp() {
   document.getElementById('app-page').style.display = 'flex';
   document.getElementById('nav-name').textContent = currentUser.name;
   document.getElementById('nav-role').textContent = currentUser.role.replace('ROLE_','');
+  const isAdmin = currentUser.role === 'ROLE_ADMIN';
+  document.getElementById('admin-panel').style.display = isAdmin ? '' : 'none';
+  if (isAdmin) loadUsers();
   loadTasks();
 }
 
@@ -427,15 +447,18 @@ function renderStats() {
   document.getElementById('stat-inprogress').textContent = allTasks.filter(t => t.status === 'IN_PROGRESS').length;
   document.getElementById('stat-done').textContent       = allTasks.filter(t => t.status === 'DONE').length;
   document.getElementById('stat-high').textContent       = allTasks.filter(t => t.priority === 'HIGH').length;
+  document.getElementById('stat-overdue').textContent    = allTasks.filter(t => t.overdue).length;
 }
 
 function applyFilters() {
   const status   = document.getElementById('filter-status').value;
   const priority = document.getElementById('filter-priority').value;
+  const overdue  = document.getElementById('filter-overdue').value;
   const search   = document.getElementById('filter-search').value.toLowerCase();
   let filtered = allTasks.filter(t => {
     if (status   && t.status   !== status)   return false;
     if (priority && t.priority !== priority) return false;
+    if (overdue === 'overdue' && !t.overdue)  return false;
     if (search && !t.title.toLowerCase().includes(search) &&
         !(t.description||'').toLowerCase().includes(search)) return false;
     return true;
@@ -450,13 +473,13 @@ function renderTasks(tasks) {
     return;
   }
   grid.innerHTML = tasks.map(t => `
-    <div class="task-card" data-priority="${t.priority}">
-      <div class="task-title">${esc(t.title)}</div>
+    <div class="task-card" data-priority="${t.priority}" style="${t.overdue ? 'outline:2px solid var(--danger);outline-offset:-2px' : ''}">
+      <div class="task-title">${esc(t.title)}${t.overdue ? ' <span style="color:var(--danger);font-size:.75rem">⏰ OVERDUE</span>' : ''}</div>
       ${t.description ? `<div class="task-desc">${esc(t.description)}</div>` : ''}
       <div class="task-meta">
         ${statusBadge(t.status)}
         ${priorityBadge(t.priority)}
-        ${t.dueDate ? `<span style="font-size:.75rem;color:var(--muted)">📅 ${t.dueDate}</span>` : ''}
+        ${t.dueDate ? `<span style="font-size:.75rem;color:${t.overdue?'var(--danger)':'var(--muted)'}">📅 ${t.dueDate}</span>` : ''}
       </div>
       <div class="task-footer">
         <div class="task-assigned">
@@ -604,6 +627,67 @@ function setLoading(id, on) {
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ══════════════ ADMIN ══════════════ */
+async function loadUsers() {
+  try {
+    const users = await api('/admin/users', 'GET');
+    renderUsersTable(users);
+  } catch(e) { console.error('Failed to load users:', e.message); }
+}
+
+function renderUsersTable(users) {
+  const html = `
+    <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);text-align:left">
+          <th style="padding:.5rem .75rem">ID</th>
+          <th style="padding:.5rem .75rem">Name</th>
+          <th style="padding:.5rem .75rem">Email</th>
+          <th style="padding:.5rem .75rem">Role</th>
+          <th style="padding:.5rem .75rem">Tasks</th>
+          <th style="padding:.5rem .75rem">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${users.map(u => `
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:.5rem .75rem;color:var(--muted)">${u.id}</td>
+            <td style="padding:.5rem .75rem">${esc(u.name)}</td>
+            <td style="padding:.5rem .75rem">${esc(u.email)}</td>
+            <td style="padding:.5rem .75rem">
+              <span class="badge ${u.role==='ROLE_ADMIN'?'badge-high':'badge-todo'}">${u.role.replace('ROLE_','')}</span>
+            </td>
+            <td style="padding:.5rem .75rem">${u.taskCount}</td>
+            <td style="padding:.5rem .75rem;display:flex;gap:.4rem">
+              <button class="btn btn-ghost btn-sm" onclick="toggleRole(${u.id},'${u.role}')">
+                ${u.role==='ROLE_ADMIN' ? 'Make User' : 'Make Admin'}
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${esc(u.name)}')">Del</button>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+  document.getElementById('users-table').innerHTML = html;
+}
+
+async function toggleRole(id, currentRole) {
+  const newRole = currentRole === 'ROLE_ADMIN' ? 'USER' : 'ADMIN';
+  try {
+    await api(`/admin/users/${id}/role?role=${newRole}`, 'PATCH');
+    showToast(`Role updated to ${newRole}`);
+    loadUsers();
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+  try {
+    await api(`/admin/users/${id}`, 'DELETE');
+    showToast('User deleted.');
+    loadUsers();
+  } catch(e) { showToast('Error: ' + e.message); }
 }
 </script>
 </body>
