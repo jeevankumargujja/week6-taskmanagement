@@ -24,7 +24,7 @@
 | Build Tool   | Maven                               |
 | API Docs     | Swagger / OpenAPI 3 (springdoc)     |
 | Frontend     | HTML, CSS, Vanilla JavaScript       |
-| Deployment   | Railway (Cloud)                     |
+| Deployment   | Render (Cloud, Docker-based)        |
 
 ---
 
@@ -180,7 +180,7 @@ static/      index.html (frontend)
 
 ### 8. Production Deployment Config
 - `application-prod.properties` — all values from environment variables
-- `railway.json` — Railway cloud deployment config
+- `Dockerfile` — Two-stage build used for Render's Docker deployment
 - `Procfile` — process definition for deployment
 - `.env.example` — reference file for all required env vars
 - `@EnableScheduling` + `@EnableAsync` added to main application class
@@ -195,7 +195,7 @@ service/     AdminService.java, NotificationService.java, OverdueAlertScheduler.
 dto/         UserResponse.java, DashboardStats.java
 config/      OpenApiConfig.java
 resources/   application-prod.properties
-             railway.json, Procfile, .env.example
+             Dockerfile, .env.example
 ```
 
 ## Week 4 — Files Modified
@@ -281,27 +281,34 @@ UPDATE users SET role = 'ROLE_ADMIN' WHERE email = 'your@email.com';
 
 ---
 
-# Deployment (Railway)
+# Deployment (Render)
 
 1. Push code to GitHub
-2. Go to [railway.app](https://railway.app) → Login with GitHub
-3. New Project → Deploy from GitHub repo
-4. Add MySQL plugin
-5. Set environment variables:
+2. Go to [render.com](https://render.com) → Login with GitHub
+3. New → Web Service → Connect the GitHub repo
+4. Environment: **Docker** (uses the project's `Dockerfile`)
+5. Set environment variables (optional — defaults to H2 if omitted):
 
 ```
 SPRING_PROFILES_ACTIVE=prod
-DATABASE_URL=<from Railway MySQL plugin>
-DB_USERNAME=<from Railway MySQL plugin>
-DB_PASSWORD=<from Railway MySQL plugin>
 JWT_SECRET=<long random string>
 SWAGGER_ENABLED=true
+
+# Optional — only needed to switch from H2 to MySQL
+DATABASE_URL=<your MySQL JDBC URL>
+DB_USERNAME=<your MySQL username>
+DB_PASSWORD=<your MySQL password>
+DB_DRIVER=com.mysql.cj.jdbc.Driver
+JPA_DIALECT=org.hibernate.dialect.MySQLDialect
 ```
+
+6. Click **Create Web Service** — Render builds the Docker image and deploys automatically
+7. Every push to the connected branch triggers an auto-redeploy
 
 ---
 
 ## Author
 
 **Jeevan Kumar Gujja**
-Java Developer Trainee
+Java Developer
 Hashclick Solutions LLC
