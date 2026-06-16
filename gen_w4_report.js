@@ -1,7 +1,7 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
-  PageNumber, Header, Footer, LevelFormat, PageBreak, ImageRun
+  PageNumber, Header, Footer, LevelFormat, PageBreak, ImageRun, TabStopType
 } = require('docx');
 const fs = require('fs');
 
@@ -147,15 +147,15 @@ const doc = new Document({
         ["Swagger Docs",  "https://week3-taskmanagement.onrender.com/swagger-ui.html"],
       ]),
 
-      blank(), br(),
+      br(),
 
       // ── 1. OVERVIEW ───────────────────────────────────────────────
       h1("1. Week 4 Overview"),
-      p("Week 4 extended the Week 3 Task Management System with enterprise-grade features. The focus was on Role-Based Access Control (RBAC), an Admin Panel, overdue task detection, asynchronous email notifications, Swagger API documentation, and deploying the application live to the cloud via Docker on Render."),
-      blank(),
+      p("Week 4 extended the Week 3 Task Management System with enterprise-grade features. The focus was on Role-Based Access Control (RBAC), an Admin Panel, overdue task detection, asynchronous email notifications, Swagger API documentation, and deploying the application live to the cloud."),
+      p("Deployment Platform: Render", { bold: true }),
+      p("The application was deployed to Render using Docker, rather than AWS or Vercel. Render was chosen because it offers free-tier hosting with native Docker support, automatic redeploys on every GitHub push, and a straightforward setup for a Spring Boot service — falling under the “other platforms” option listed in the Week 4 task assignment."),
 
       h2("Features Completed This Week"),
-      blank(),
       new Table({
         width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [600, 2400, 6360],
         rows: [
@@ -177,36 +177,95 @@ const doc = new Document({
           featureRow("8", "Cloud Deployment", "Deployed to Render (free tier). Auto-deploys on GitHub push.", "FFFFFF"),
         ]
       }),
-      blank(), br(),
+      br(),
 
-      // ── 2. SCREENSHOTS ────────────────────────────────────────────
-      h1("2. Application Screenshots"),
+      // ── 2. DAILY PROGRESS ────────────────────────────────────────
+      h1("2. Daily Progress Breakdown (Week 4)"),
+      p("Work was carried out across five working days, Monday through Friday. Saturday and Sunday were the scheduled week off, in line with the standard training calendar."),
+      new Table({
+        width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [1400, 1700, 6260],
+        rows: [
+          new TableRow({ children: [
+            new TableCell({ borders: allBorders, width: { size: 1400, type: WidthType.DXA }, shading: { fill: "1F3864", type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              children: [new Paragraph({ children: [new TextRun({ text: "Day", bold: true, size: 20, color: "FFFFFF", font: "Calibri" })] })] }),
+            new TableCell({ borders: allBorders, width: { size: 1700, type: WidthType.DXA }, shading: { fill: "1F3864", type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              children: [new Paragraph({ children: [new TextRun({ text: "Date", bold: true, size: 20, color: "FFFFFF", font: "Calibri" })] })] }),
+            new TableCell({ borders: allBorders, width: { size: 6260, type: WidthType.DXA }, shading: { fill: "1F3864", type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+              children: [new Paragraph({ children: [new TextRun({ text: "Work Completed", bold: true, size: 20, color: "FFFFFF", font: "Calibri" })] })] }),
+          ]}),
+          ...[
+            ["Monday",    "Jun 8, 2026",  "Reviewed Week 4 requirements from HR. Began RBAC implementation — added @PreAuthorize annotations to TaskController and AdminController, and enabled method-level security with @EnableMethodSecurity."],
+            ["Tuesday",   "Jun 9, 2026",  "Built AdminController and AdminService — endpoints to list users, promote/demote roles, delete users, and view dashboard stats. Added the Admin Panel section to the frontend (index.html) with role-toggle and delete actions."],
+            ["Wednesday", "Jun 10, 2026", "Implemented overdue task detection — added the overdue flag to TaskResponse, overdue queries in TaskRepository, the red OVERDUE badge in the UI, NotificationService (@Async), and OverdueAlertScheduler (daily 8 AM cron job)."],
+            ["Thursday",  "Jun 11, 2026", "Integrated Swagger/OpenAPI documentation (springdoc), added OpenApiConfig with JWT bearer auth, strengthened input validation (@Valid, @NotBlank, @Email), and tested all endpoints through Postman and Swagger UI."],
+            ["Friday",    "Jun 12, 2026", "Wrote the two-stage Dockerfile, fixed the production profile to default to H2 (resolving the MySQL connection failure), deployed the app to Render, verified the live URL, and updated the README with full Week 3 + Week 4 documentation."],
+            ["Saturday",  "Jun 13, 2026", "Week Off"],
+            ["Sunday",    "Jun 14, 2026", "Week Off"],
+          ].map(([day, date, work], i) => {
+            const isWeekend = work === "Week Off";
+            const fill = isWeekend ? "F2F2F2" : (i % 2 === 0 ? "EBF3FB" : "FFFFFF");
+            return new TableRow({ children: [
+              new TableCell({ borders: allBorders, width: { size: 1400, type: WidthType.DXA }, shading: { fill, type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [new Paragraph({ children: [new TextRun({ text: day, bold: true, size: 20, font: "Calibri" })] })] }),
+              new TableCell({ borders: allBorders, width: { size: 1700, type: WidthType.DXA }, shading: { fill, type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [new Paragraph({ children: [new TextRun({ text: date, size: 20, font: "Calibri" })] })] }),
+              new TableCell({ borders: allBorders, width: { size: 6260, type: WidthType.DXA }, shading: { fill, type: ShadingType.CLEAR }, margins: { top: 80, bottom: 80, left: 120, right: 120 },
+                children: [new Paragraph({ children: [new TextRun({ text: work, size: 20, font: "Calibri", italics: isWeekend, color: isWeekend ? "888888" : "000000" })] })] }),
+            ]});
+          })
+        ]
+      }),
+      p("Summary: 5 working days, 2 weekend days off. All HR-assigned Week 4 objectives — RBAC, advanced features, deployment, and documentation — were completed within the working week.", { italics: true, size: 20, color: "555555" }),
+      br(),
 
-      h2("2.1  Login Page"),
-      p("Login page at localhost:8080 — users log in or register and receive a JWT token."),
-      ...imgPara(SHOTS + "loginpage.png", 1366, 768, "Figure 1 — Login Page"),
+      // ── 3. SCREENSHOTS ────────────────────────────────────────────
+      h1("3. Application Screenshots"),
+      p("The screenshots below were captured directly from the running application and its supporting tools, demonstrating each Week 4 feature end-to-end."),
 
-      h2("2.2  Task Dashboard — USER Role"),
-      p("Logged in as a USER — stats bar plus a grid of the user's own tasks."),
+      h2("3.1  Login Page"),
+      p("The frontend login screen served at localhost:8080. A user can either log in with existing credentials or register a new account. On a successful login, the backend issues a JWT token that the browser stores and attaches to every subsequent API request."),
+      ...imgPara(SHOTS + "loginpage.png", 1366, 768, "Figure 1 — Login Page (localhost:8080)"),
+
+      h2("3.2  Task Dashboard — USER Role"),
+      p("View after logging in as a regular USER. The stats bar summarizes Total, To Do, In Progress, Done, and High Priority counts, and the grid below lists only tasks created by or assigned to this user — confirming that RBAC correctly scopes data per role."),
       ...imgPara(SHOTS + "task_mangement_info.png", 1366, 768, "Figure 2 — Task Dashboard (USER role)"),
 
-      h2("2.3  JWT Authentication — Login API"),
-      p("POST /api/auth/login returns a JWT token, name, email, and role for use in the Authorization header."),
+      h2("3.3  JWT Authentication — Login API"),
+      p("POST /api/auth/login tested in Postman. The response contains the signed JWT token along with the user's name, email, and role (ROLE_USER or ROLE_ADMIN). This token is what gets placed in the Authorization: Bearer header for every protected endpoint."),
       ...imgPara(SHOTS + "02_login_user.png", 1366, 700, "Figure 3 — Login API returning JWT token (Postman)"),
 
-      h2("2.4  Create Task API"),
-      p("POST /api/tasks creates a task. Requires the JWT token and validates all input fields."),
+      h2("3.4  Create Task API"),
+      p("POST /api/tasks tested with a valid JWT token attached. The request body is validated against the @Valid constraints on the DTO, and on success the API returns the newly created task with a 201 Created status."),
       ...imgPara(SHOTS + "03_create_task.png", 1366, 700, "Figure 4 — Create Task API with JWT auth (Postman)"),
 
-      h2("2.5  Render — Cloud Deployment"),
-      p("Deployed on Render via Docker. Auto-deploys on every GitHub push."),
+      h2("3.5  Render — Cloud Deployment"),
+      p("The Render dashboard showing the live deployment pipeline. Render builds the Docker image directly from the Dockerfile in the repository and redeploys automatically every time new code is pushed to GitHub — no manual steps required after the initial setup."),
       ...imgPara(SHOTS + "deployemnt_sucess.png", 1366, 700, "Figure 5 — Render deployment dashboard"),
 
+      h2("3.6  Admin Panel — Overdue Task & User Management"),
+      p("View after logging in as ADMIN. The User Management table (visible only to admins) lists every registered user with their role and task count, alongside promote/demote and delete controls. The task below it is overdue — past its due date and not yet marked Done — so it is automatically highlighted with a red border and an OVERDUE badge."),
+      ...imgPara(SHOTS + "Taskmanagementupdated.png", 1365, 648, "Figure 6 — Admin Panel with overdue task badge"),
 
-      // ── 3. ACCESS CONTROL ─────────────────────────────────────────
-      h1("3. Role-Based Access Control (RBAC)"),
+      h2("3.7  Swagger UI — Task Endpoints"),
+      p("The interactive Swagger UI at /swagger-ui.html, showing all Task endpoints grouped under the Tasks tag — including the new GET /api/tasks/overdue endpoint added this week. Each endpoint can be tested directly from the browser once a JWT token is supplied via the Authorize button."),
+      ...imgPara(SHOTS + "Swagger2.png", 1363, 669, "Figure 7 — Swagger UI listing Task endpoints"),
+
+      h2("3.8  Swagger UI — Admin Endpoints"),
+      p("Admin-only endpoints are grouped separately under the Admin tag and marked with a lock icon, signaling that they require a valid JWT with ROLE_ADMIN. Attempting to call these as a regular USER returns a 403 Forbidden response."),
+      ...imgPara(SHOTS + "Swagger.png", 1365, 652, "Figure 8 — Swagger UI showing Admin DELETE endpoint"),
+
+      h2("3.9  H2 Console — Role Promotion"),
+      p("The H2 Console used during local testing to promote a user to ROLE_ADMIN directly via SQL, and to clean up a user's tasks before deleting the user record (required to satisfy the foreign key constraint between tasks and users)."),
+      ...imgPara(SHOTS + "H2console.png", 1359, 643, "Figure 9 — H2 Console executing role update query"),
+
+      h2("3.10  GitHub Repository — Renamed for Week 3 + Week 4"),
+      p("The repository was renamed from week3-taskmanagement to week3-week4_taskmanagement so the name clearly reflects that it now contains both weeks of work, without removing or overwriting any of the original Week 3 history or files."),
+      ...imgPara(SHOTS + "Github_repo_week4.png", 1365, 677, "Figure 10 — GitHub repository week3-week4_taskmanagement"),
+      br(),
+
+      // ── 4. ACCESS CONTROL ─────────────────────────────────────────
+      h1("4. Role-Based Access Control (RBAC)"),
       p("RBAC is enforced using Spring Security's @PreAuthorize annotation at the method level. Every API endpoint checks the user's role from the JWT token before executing."),
-      blank(),
       new Table({
         width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [4560, 2400, 2400],
         rows: [
@@ -240,10 +299,10 @@ const doc = new Document({
           )
         ]
       }),
-      blank(), br(),
+      br(),
 
-      // ── 4. NEW FILES ─────────────────────────────────────────────
-      h1("4. New Files Created (Week 4)"),
+      // ── 5. NEW FILES ─────────────────────────────────────────────
+      h1("5. New Files Created (Week 4)"),
       bul("AdminController.java — Admin-only REST endpoints (users, stats, role change, delete)"),
       bul("AdminService.java — Business logic for all admin operations"),
       bul("NotificationService.java — @Async email notifications for task assignment and overdue"),
@@ -254,9 +313,8 @@ const doc = new Document({
       bul("application-prod.properties — Production config (env vars, H2 default, MySQL opt-in)"),
       bul("Dockerfile — Two-stage build: Maven + JRE alpine"),
       bul("railway.json / Procfile / .env.example — Cloud deployment config files"),
-      blank(),
 
-      h1("5. Key Files Modified (Week 4)"),
+      h1("6. Key Files Modified (Week 4)"),
       bul("TaskController.java", "@PreAuthorize on all endpoints; overdue endpoint added"),
       bul("TaskService.java", "RBAC-aware queries; getAllTasksForUser(); notifications called"),
       bul("TaskRepository.java", "findOverdueTasks(), countOverdue(), countByStatus() added"),
@@ -265,10 +323,10 @@ const doc = new Document({
       bul("TaskManagementApplication.java", "@EnableScheduling + @EnableAsync added"),
       bul("index.html", "Admin panel section; overdue badge + filter + stat counter"),
       bul("pom.xml", "springdoc-openapi 2.5.0 + spring-boot-starter-mail added"),
-      blank(), br(),
+      br(),
 
-      // ── 5. CHALLENGES ─────────────────────────────────────────────
-      h1("6. Challenges & Solutions"),
+      // ── 7. CHALLENGES ─────────────────────────────────────────────
+      h1("7. Challenges & Solutions"),
       new Table({
         width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [3600, 5760],
         rows: [
@@ -294,10 +352,10 @@ const doc = new Document({
           )
         ]
       }),
-      blank(), br(),
+      br(),
 
-      // ── 6. DELIVERABLES ───────────────────────────────────────────
-      h1("7. Deliverables — Status"),
+      // ── 8. DELIVERABLES ───────────────────────────────────────────
+      h1("8. Deliverables — Status"),
       new Table({
         width: { size: CONTENT_W, type: WidthType.DXA }, columnWidths: [6240, 3120],
         rows: [
@@ -331,16 +389,21 @@ const doc = new Document({
           )
         ]
       }),
-      blank(), br(),
+      br(),
 
-      // ── 7. SIGNATURE ─────────────────────────────────────────────
-      h1("8. Trainee Declaration"),
-      p("I confirm that all tasks assigned for Week 4 have been completed, tested, and deployed as described in this report."),
+      // ── 9. SIGNATURE ─────────────────────────────────────────────
+      h1("9. Trainee Declaration"),
+      p("I certify that all the information provided above is accurate and the work was completed during the stated period."),
       blank(),
-      new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: "Student Signature", bold: true, size: 22, font: "Calibri" })] }),
-      new Paragraph({ spacing: { after: 160 }, children: [new TextRun({ text: "______________________________", size: 22, font: "Calibri" })] }),
-      new Paragraph({ spacing: { after: 40 }, children: [new TextRun({ text: "Date", bold: true, size: 22, font: "Calibri" })] }),
-      new Paragraph({ children: [new TextRun({ text: "______________________________", size: 22, font: "Calibri" })] }),
+      blank(),
+      new Paragraph({
+        tabStops: [{ type: TabStopType.LEFT, position: 5400 }],
+        children: [
+          new TextRun({ text: "Employee Signature:", size: 22, font: "Calibri" }),
+          new TextRun({ text: "\tDate: 06/07/2026", size: 22, font: "Calibri" }),
+        ]
+      }),
+      new Paragraph({ children: [new TextRun({ text: "Jeevan Kumar Gujja", size: 22, font: "Calibri" })] }),
     ]
   }]
 });
