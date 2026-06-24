@@ -1,9 +1,32 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   AlignmentType, HeadingLevel, BorderStyle, WidthType, ShadingType,
-  PageNumber, Header, Footer, LevelFormat, PageBreak, TabStopType
+  PageNumber, Header, Footer, LevelFormat, PageBreak, TabStopType, ImageRun
 } = require('docx');
 const fs = require('fs');
+
+const SS = 'C:/Users/jeeva/Downloads/Hashclick/week5_screenshots/';
+
+function imgPara(file, origW, origH, caption) {
+  const maxW = 580;
+  let w = origW, h = origH;
+  if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+  const items = [
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 120, after: 60 },
+      children: [new ImageRun({ type: "png", data: fs.readFileSync(SS + file),
+        transformation: { width: w, height: h },
+        altText: { title: caption, description: caption, name: caption } })]
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+      children: [new TextRun({ text: caption, italics: true, size: 18, color: "666666", font: "Calibri" })]
+    })
+  ];
+  return items;
+}
 
 const CONTENT_W = 9360;
 
@@ -400,8 +423,61 @@ const doc = new Document({
       bul("Dockerfiles for containerised deployment of both services", "Docker"),
       bul("This weekly training report", "Report"),
 
-      // ── SECTION 8 — Declaration ───────────────────────────────────────────
-      h1("8. Trainee Declaration"),
+      // ── SECTION 8 — Screenshots ───────────────────────────────────────────
+      br(),
+      h1("8. Application Screenshots"),
+
+      h2("Figure 1 — User Service Started (Port 8081)"),
+      ...imgPara("Userservice_port started.png", 1365, 722, "Figure 1: User Service successfully started on port 8081"),
+
+      h2("Figure 2 — Task Service Started (Port 8082)"),
+      ...imgPara("taskservice port started.png", 1326, 676, "Figure 2: Task Service successfully started on port 8082"),
+
+      h2("Figure 3 — User Service Swagger UI"),
+      ...imgPara("userservice_swagger.png", 1365, 678, "Figure 3: User Service Swagger/OpenAPI documentation at localhost:8081/swagger-ui.html"),
+
+      h2("Figure 4 — Task Service Swagger UI"),
+      ...imgPara("taskservice_swagger.png", 1363, 676, "Figure 4: Task Service Swagger/OpenAPI documentation at localhost:8082/swagger-ui.html"),
+
+      h2("Figure 5 — Register API (POST /api/auth/register)"),
+      ...imgPara("userservice_post+auth_register_reponse.png", 1365, 674, "Figure 5: User registration via POST /api/auth/register — returns JWT token"),
+
+      h2("Figure 6 — Login API (POST /api/auth/login)"),
+      ...imgPara("userservice_auth_login.png", 1365, 671, "Figure 6: User login via POST /api/auth/login"),
+
+      h2("Figure 7 — JWT Token Response"),
+      ...imgPara("userservice_jwttoken_response.png", 1365, 678, "Figure 7: JWT token returned after successful login — used for all subsequent requests"),
+
+      h2("Figure 8 — Create Task (POST /api/tasks)"),
+      ...imgPara("taskservice_create task.png", 1365, 665, "Figure 8: Creating a new task via POST /api/tasks with Bearer JWT token"),
+
+      h2("Figure 9 — Create Task Response"),
+      ...imgPara("taskservice_createtask_response.png", 1365, 673, "Figure 9: Task created successfully — response with task ID and details"),
+
+      h2("Figure 10 — Get Tasks (GET /api/tasks)"),
+      ...imgPara("taskservice_getapitask_response.png", 1363, 669, "Figure 10: Retrieving all tasks via GET /api/tasks"),
+
+      h2("Figure 11 — H2 Console — User Service"),
+      ...imgPara("h2console_userservice.png", 1365, 676, "Figure 11: H2 in-memory database console for User Service (userdb) showing users table"),
+
+      h2("Figure 12 — H2 Console — Task Service"),
+      ...imgPara("h2console_taskservice.png", 1360, 671, "Figure 12: H2 in-memory database console for Task Service (taskdb) showing tasks table"),
+
+      h2("Figure 13 — User Service GitHub Repository"),
+      ...imgPara("user service repo.png", 1362, 675, "Figure 13: User Service GitHub repository — github.com/jeevankumargujja/user-service"),
+
+      h2("Figure 14 — Task Service GitHub Repository"),
+      ...imgPara("taskservice repo.png", 1362, 639, "Figure 14: Task Service GitHub repository — github.com/jeevankumargujja/task-service"),
+
+      h2("Figure 15 — User Service README"),
+      ...imgPara("userservice_readme.png", 1357, 633, "Figure 15: User Service README with API documentation and setup guide"),
+
+      h2("Figure 16 — Task Service README"),
+      ...imgPara("taskservice_readme.png", 1362, 659, "Figure 16: Task Service README with API endpoints, RBAC table, and inter-service communication notes"),
+
+      // ── SECTION 9 — Declaration ───────────────────────────────────────────
+      br(),
+      h1("9. Trainee Declaration"),
       p("I certify that all the information provided above is accurate and the work was completed during the stated period."),
       blank(),
       blank(),
