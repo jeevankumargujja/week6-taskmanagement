@@ -19,6 +19,8 @@ public class TaskResponse {
     private String assignedToEmail;
     private Long assignedToId;
     private String createdByName;
+    private Long projectId;
+    private String projectName;
     private boolean overdue;
 
     public static TaskResponse from(Task task) {
@@ -32,6 +34,10 @@ public class TaskResponse {
         r.createdAt   = task.getCreatedAt();
         r.updatedAt   = task.getUpdatedAt();
         r.createdByName = task.getCreatedBy() != null ? task.getCreatedBy().getName() : null;
+        if (task.getProject() != null) {
+            r.projectId   = task.getProject().getId();
+            r.projectName = task.getProject().getName();
+        }
         if (task.getAssignedTo() != null) {
             r.assignedToName  = task.getAssignedTo().getName();
             r.assignedToEmail = task.getAssignedTo().getEmail();
@@ -55,5 +61,7 @@ public class TaskResponse {
     public String getAssignedToEmail()  { return assignedToEmail; }
     public Long getAssignedToId()       { return assignedToId; }
     public String getCreatedByName()    { return createdByName; }
+    public Long getProjectId()          { return projectId; }
+    public String getProjectName()      { return projectName; }
     public boolean isOverdue()          { return overdue; }
 }

@@ -7,9 +7,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "tasks")
+@Table(name = "tasks", indexes = {
+    @Index(name = "idx_task_status", columnList = "status"),
+    @Index(name = "idx_task_due_date", columnList = "dueDate"),
+    @Index(name = "idx_task_assigned_to", columnList = "assigned_to"),
+    @Index(name = "idx_task_project", columnList = "project_id")
+})
 public class Task {
 
     @Id
@@ -46,6 +53,13 @@ public class Task {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private Project project;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Comment> comments = new ArrayList<>();
+
     public Task() {}
 
     @PreUpdate
@@ -61,6 +75,8 @@ public class Task {
     public LocalDateTime getUpdatedAt()  { return updatedAt; }
     public User getAssignedTo()          { return assignedTo; }
     public User getCreatedBy()           { return createdBy; }
+    public Project getProject()          { return project; }
+    public List<Comment> getComments()   { return comments; }
 
     public void setId(Long id)                  { this.id = id; }
     public void setTitle(String title)          { this.title = title; }
@@ -70,5 +86,7 @@ public class Task {
     public void setDueDate(LocalDate d)         { this.dueDate = d; }
     public void setAssignedTo(User user)        { this.assignedTo = user; }
     public void setCreatedBy(User user)         { this.createdBy = user; }
+    public void setProject(Project project)     { this.project = project; }
+    public void setComments(List<Comment> c)    { this.comments = c; }
     public void setUpdatedAt(LocalDateTime dt)  { this.updatedAt = dt; }
 }

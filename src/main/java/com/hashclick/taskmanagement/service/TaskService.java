@@ -1,30 +1,40 @@
 package com.hashclick.taskmanagement.service;
 
+import com.hashclick.taskmanagement.dto.PagedResponse;
 import com.hashclick.taskmanagement.dto.TaskRequest;
 import com.hashclick.taskmanagement.dto.TaskResponse;
 import com.hashclick.taskmanagement.enums.Role;
 import com.hashclick.taskmanagement.enums.TaskStatus;
 import com.hashclick.taskmanagement.exception.ResourceNotFoundException;
+import com.hashclick.taskmanagement.model.Project;
 import com.hashclick.taskmanagement.model.Task;
 import com.hashclick.taskmanagement.model.User;
+import com.hashclick.taskmanagement.repository.ProjectRepository;
 import com.hashclick.taskmanagement.repository.TaskRepository;
 import com.hashclick.taskmanagement.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 public class TaskService {
 
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+    private final TaskRepository    taskRepository;
+    private final UserRepository    userRepository;
+    private final ProjectRepository projectRepository;
     private final NotificationService notificationService;
 
     public TaskService(TaskRepository taskRepository, UserRepository userRepository,
+                       ProjectRepository projectRepository,
                        NotificationService notificationService) {
         this.taskRepository      = taskRepository;
         this.userRepository      = userRepository;
+        this.projectRepository   = projectRepository;
         this.notificationService = notificationService;
     }
 
@@ -37,6 +47,11 @@ public class TaskService {
         task.setPriority(request.getPriority());
         task.setDueDate(request.getDueDate());
         task.setCreatedBy(creator);
+        if (request.getProjectId() != null) {
+            Project project = projectRepository.findById(request.getProjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
+            task.setProject(project);
+        }
         if (request.getAssignedToUserId() != null) {
             User assignee = findUserById(request.getAssignedToUserId());
             task.setAssignedTo(assignee);
@@ -46,12 +61,27 @@ public class TaskService {
     }
 
     /** Admin sees all tasks; regular users see only their own (created or assigned). */
+    @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasksForUser(String email) {
         User user = findUser(email);
         if (isAdmin(user))
             return taskRepository.findAll().stream().map(TaskResponse::from).toList();
         return taskRepository.findByAssignedToOrCreatedBy(user, user)
                 .stream().map(TaskResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<TaskResponse> getAllTasksPaged(String email, Pageable pageable) {
+        User user = findUser(email);
+        Page<Task> page = isAdmin(user)
+            ? taskRepository.findAll(pageable)
+            : taskRepository.findByAssignedToOrCreatedBy(user, user, pageable);
+        return PagedResponse.from(page.map(TaskResponse::from));
+    }
+
+    @Transactional(readOnly = true)
+    public PagedResponse<TaskResponse> searchTasks(String keyword, Pageable pageable) {
+        return PagedResponse.from(taskRepository.searchByKeyword(keyword, pageable).map(TaskResponse::from));
     }
 
     public TaskResponse getTaskById(Long id, String email) {
@@ -91,6 +121,11 @@ public class TaskService {
         task.setStatus(request.getStatus() != null ? request.getStatus() : task.getStatus());
         task.setPriority(request.getPriority());
         task.setDueDate(request.getDueDate());
+        if (request.getProjectId() != null) {
+            Project project = projectRepository.findById(request.getProjectId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + request.getProjectId()));
+            task.setProject(project);
+        }
         if (request.getAssignedToUserId() != null) {
             User newAssignee = findUserById(request.getAssignedToUserId());
             boolean reassigned = task.getAssignedTo() == null ||
