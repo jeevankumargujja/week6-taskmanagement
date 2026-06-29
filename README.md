@@ -1,14 +1,15 @@
 # Task Management System — Hashclick Solutions
 
-> **Training Program | Week 3 + Week 4**
+> **Training Program | Week 3 → Week 6**
 > Java Developer Trainee — Jeevan Kumar Gujja
 
 ---
 
 ## Live Demo
-🌐 **Live URL:** https://week3-taskmanagement.onrender.com
 
-🔗 **Swagger API Docs:** https://week3-taskmanagement.onrender.com/swagger-ui.html
+- **Live URL:** https://week3-taskmanagement.onrender.com
+- **Swagger API Docs:** https://week3-taskmanagement.onrender.com/swagger-ui.html
+- **GitHub Repo:** https://github.com/jeevankumargujja/week6-taskmanagement
 
 ---
 
@@ -28,15 +29,11 @@
 
 ---
 
----
-
 # WEEK 3 — Core Task Management System
 
 > **Focus:** Build a secure REST API with JWT authentication and full Task CRUD
 
----
-
-## Week 3 — What Was Built
+## What Was Built
 
 ### Authentication
 - User Registration (`/api/auth/register`)
@@ -48,7 +45,6 @@
 - Create, Read, Update, Delete tasks
 - Assign tasks to users
 - Filter tasks by status
-- Search tasks by title/description
 - Due date support
 
 ### Data Models
@@ -72,39 +68,16 @@
 - Status update modal
 - Filter by status, priority, search
 
-### Database
-- H2 in-memory (development)
-- MySQL-ready configuration (production)
-
----
-
-## Week 3 — Files Added
-
-```
-controller/  AuthController.java, TaskController.java
-service/     AuthService.java, TaskService.java
-model/       User.java, Task.java
-dto/         AuthResponse, LoginRequest, RegisterRequest, TaskRequest, TaskResponse
-repository/  UserRepository.java, TaskRepository.java
-security/    JwtAuthFilter, JwtUtil, SecurityConfig, UserDetailsServiceImpl
-enums/       Role.java, Priority.java, TaskStatus.java
-exception/   GlobalExceptionHandler.java, ResourceNotFoundException.java
-resources/   application.properties
-static/      index.html (frontend)
-```
-
----
-
 ## Week 3 — API Endpoints
 
-### Authentication (No token required)
+### Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Register a new user |
 | POST | `/api/auth/login` | Login and receive JWT token |
 
-### Tasks (JWT token required)
+### Tasks
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -120,109 +93,46 @@ static/      index.html (frontend)
 
 ---
 
----
-
 # WEEK 4 — Advanced Features + Deployment
 
 > **Focus:** RBAC enforcement, notifications, admin panel, Swagger docs, cloud deployment
 
----
-
-## Week 4 — What Was Added
+## What Was Added
 
 ### 1. Role-Based Access Control (RBAC)
-- Added `@PreAuthorize` annotations on all endpoints
+- `@PreAuthorize` on all endpoints
 - **ADMIN** — sees all tasks, manages all users, assigns tasks, views stats
-- **USER** — sees only their own tasks (created or assigned to them)
-- Admin-only routes locked at both controller level and security config
-- `PATCH /api/tasks/{id}/assign` — restricted to ADMIN only
+- **USER** — sees only their own tasks (created or assigned)
 
 ### 2. Admin Controller & Service
-- New `/api/admin/**` endpoints (ADMIN only)
-- List all users with task counts
-- Change user roles (promote/demote)
-- Delete users
-- Dashboard statistics (total users, tasks, overdue count)
+- `/api/admin/**` endpoints (ADMIN only)
+- List all users, change roles, delete users
+- Dashboard statistics
 
-### 3. Admin Panel (Frontend)
-- Visible only when logged in as ADMIN
-- User management table — ID, Name, Email, Role, Task count
-- **Make Admin / Make User** buttons to toggle roles
-- **Delete user** button with confirmation
+### 3. Overdue Task Detection
+- `overdue` flag on every `TaskResponse`
+- Daily scheduled job alerts users of overdue tasks
 
-### 4. Overdue Task Detection
-- `overdue` flag added to every `TaskResponse`
-- Tasks past due date with status not DONE are marked overdue
-- Red **⏰ OVERDUE** badge shown on task cards
-- Red border highlight on overdue cards
-- Overdue counter added to stats bar (shown in red)
-- **Overdue Only** filter added to toolbar
-- Daily scheduled job runs at 8 AM — alerts users of overdue tasks
+### 4. Email Notifications
+- Sends email when task is assigned (`@Async`)
+- Overdue alerts sent daily by scheduler
 
-### 5. Email Notifications
-- `NotificationService` — sends email when task is assigned
-- Async execution (`@Async`) — non-blocking
-- Logs to console by default (email disabled in dev)
-- Enable real emails via `notifications.email.enabled=true`
-- Overdue email alerts sent by scheduler daily
+### 5. Swagger / OpenAPI Documentation
+- Live docs at `/swagger-ui.html`
+- JWT Bearer auth integrated
 
-### 6. Input Validation (Enhanced)
-- `@Valid` enforced on all request bodies
-- Field constraints — `@NotBlank`, `@Size`, `@Email`, `@FutureOrPresent`
-- Global exception handler returns structured validation error responses
-
-### 7. Swagger / OpenAPI Documentation
-- Live API docs at `/swagger-ui.html`
-- All endpoints documented with summaries
-- JWT Bearer auth integrated — click **Authorize** and paste token
-- Endpoints grouped by tag: **Authentication**, **Tasks**, **Admin**
-- OpenAPI spec available at `/v3/api-docs`
-
-### 8. Production Deployment Config
-- `application-prod.properties` — all values from environment variables
-- `Dockerfile` — Two-stage build used for Render's Docker deployment
-- `Procfile` — process definition for deployment
-- `.env.example` — reference file for all required env vars
-- `@EnableScheduling` + `@EnableAsync` added to main application class
-
----
-
-## Week 4 — New Files Added
-
-```
-controller/  AdminController.java
-service/     AdminService.java, NotificationService.java, OverdueAlertScheduler.java
-dto/         UserResponse.java, DashboardStats.java
-config/      OpenApiConfig.java
-resources/   application-prod.properties
-             Dockerfile, .env.example
-```
-
-## Week 4 — Files Modified
-
-```
-controller/  TaskController.java       → added @PreAuthorize on all endpoints
-service/     TaskService.java          → RBAC-aware queries, overdue logic, notifications
-repository/  TaskRepository.java       → added overdue queries, countByStatus
-dto/         TaskResponse.java         → added overdue flag, assignedToId
-security/    SecurityConfig.java       → added Swagger routes, /api/admin/** rule
-             TaskManagementApplication → added @EnableScheduling, @EnableAsync
-resources/   application.properties   → added mail config, Swagger config
-static/      index.html               → admin panel, overdue badge, overdue filter, overdue stat
-pom.xml                               → added springdoc-openapi, spring-boot-starter-mail
-```
-
----
+### 6. Cloud Deployment
+- Dockerfile, Procfile, `application-prod.properties`
+- Deployed on Render
 
 ## Week 4 — API Endpoints
 
-### Admin (ADMIN role only)
+### Admin (ADMIN only)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/admin/users` | List all users |
-| GET | `/api/admin/users/{id}` | Get user by ID |
-| PATCH | `/api/admin/users/{id}/role?role=ADMIN` | Change user role |
+| PATCH | `/api/admin/users/{id}/role` | Change user role |
 | DELETE | `/api/admin/users/{id}` | Delete a user |
 | GET | `/api/admin/stats` | Dashboard statistics |
 
@@ -232,8 +142,6 @@ pom.xml                               → added springdoc-openapi, spring-boot-s
 |--------|----------|-------------|
 | GET | `/api/tasks/overdue` | Get overdue tasks |
 
----
-
 ## Week 4 — Access Control
 
 | Action | ROLE_USER | ROLE_ADMIN |
@@ -242,20 +150,145 @@ pom.xml                               → added springdoc-openapi, spring-boot-s
 | Create task | ✅ | ✅ |
 | View own tasks | ✅ | ✅ |
 | View ALL tasks | ❌ | ✅ |
-| Update own task | ✅ | ✅ |
-| Delete own task | ✅ | ✅ |
 | Assign task to user | ❌ | ✅ |
-| View overdue tasks | own only | all tasks |
 | Manage users | ❌ | ✅ |
 | View dashboard stats | ❌ | ✅ |
 
 ---
+
+# WEEK 5 — Microservices Architecture
+
+> **Focus:** Decompose monolith into microservices with API Gateway and service communication
+
+## What Was Added
+
+### Microservices Design
+- Identified service boundaries: Auth, Task, Notification, Admin
+- Designed inter-service communication patterns
+- API Gateway pattern for routing and authentication
+- Service discovery concepts
+
+### Architecture Improvements
+- Separation of concerns per service domain
+- Independent deployability of each service
+- Fault tolerance and resilience patterns
+- Load balancing concepts
+
+---
+
+# WEEK 6 — Database Integration & Performance
+
+> **Focus:** Advanced JPA/Hibernate, entity relationships, query optimization, pagination
+
+## What Was Added
+
+### New Entities & Relationships
+
+```
+User ──< Project ──< Task ──< Comment
+         (owner)   (project)  (task, author→User)
+```
+
+| Entity | Relationship | Target |
+|--------|-------------|--------|
+| Project | ManyToOne | User (owner) |
+| Project | OneToMany | Task |
+| Task | ManyToOne | Project |
+| Task | OneToMany | Comment |
+| Comment | ManyToOne | Task |
+| Comment | ManyToOne | User (author) |
+
+### Database Schema (MySQL)
+- Production-ready DDL in `schema.sql`
+- FK constraints with `ON DELETE CASCADE / SET NULL`
+- Indexes on `status`, `due_date`, `assigned_to`, `project_id`
+- Composite index on `(due_date, status)` for overdue queries
+- `utf8mb4` charset for full Unicode support
+
+### Sample Data (`data.sql`)
+- 4 users (1 admin, 3 regular)
+- 4 projects (ACTIVE, ON_HOLD, COMPLETED)
+- 10 tasks across projects
+- 8 comments on various tasks
+
+### Query Optimization
+- `@EntityGraph` — eliminates N+1 queries on task/comment lists
+- `@Transactional(readOnly = true)` — optimizes read-only operations
+- Paginated `Page<T>` responses on all list endpoints
+- `searchByKeyword` — case-insensitive JPQL keyword search
+- `countByStatusForProject` — aggregate stats without loading entities
+- HikariCP connection pool configured
+
+### Exception Handling (Enhanced)
+- `DuplicateResourceException` → HTTP 409 Conflict
+- `MethodArgumentTypeMismatchException` handler
+- `MissingServletRequestParameterException` handler
+
+## Week 6 — New API Endpoints
+
+### Projects
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/projects` | Create a new project |
+| GET | `/api/projects` | Get all projects (paginated) |
+| GET | `/api/projects/{id}` | Get project by ID |
+| PUT | `/api/projects/{id}` | Update a project |
+| DELETE | `/api/projects/{id}` | Delete a project |
+| GET | `/api/projects/{id}/tasks` | Get tasks in a project (paginated) |
+| GET | `/api/projects/{id}/stats` | Task status stats for a project |
+
+### Comments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/tasks/{id}/comments` | Add a comment to a task |
+| GET | `/api/tasks/{id}/comments` | Get all comments on a task |
+| PUT | `/api/comments/{id}` | Update a comment (author/admin) |
+| DELETE | `/api/comments/{id}` | Delete a comment (author/admin) |
+
+### Task Enhancements
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/tasks/paged` | Paginated task list |
+| GET | `/api/tasks/search?keyword=` | Keyword search across tasks |
+
+## Week 6 — Files Added
+
+```
+model/       Project.java, Comment.java
+repository/  ProjectRepository.java, CommentRepository.java
+service/     ProjectService.java, CommentService.java
+controller/  ProjectController.java, CommentController.java
+dto/         ProjectRequest.java, ProjectResponse.java
+             CommentRequest.java, CommentResponse.java
+             PagedResponse.java
+exception/   DuplicateResourceException.java
+resources/   schema.sql, data.sql
+tests/       ProjectRepositoryTest, CommentRepositoryTest
+             ProjectServiceTest, CommentServiceTest
+```
+
+## Week 6 — Test Results
+
+| Test Class | Tests | Result |
+|-----------|-------|--------|
+| ProjectRepositoryTest | 4 | ✅ All Pass |
+| CommentRepositoryTest | 4 | ✅ All Pass |
+| ProjectServiceTest | 4 | ✅ All Pass |
+| CommentServiceTest | 4 | ✅ All Pass |
+| **Total** | **15** | **✅ All Pass** |
 
 ---
 
 # How to Run Locally
 
 ```bash
+# Clone
+git clone https://github.com/jeevankumargujja/week6-taskmanagement.git
+cd week6-taskmanagement
+
 # Build
 mvn clean package -DskipTests
 
@@ -269,46 +302,87 @@ java -jar target/task-management-1.0.0.jar
 | `http://localhost:8080/swagger-ui.html` | Swagger API Docs |
 | `http://localhost:8080/h2-console` | H2 Database Console |
 
-### Make yourself Admin (H2 Console)
+### H2 Console (Dev)
 ```
-JDBC URL: jdbc:h2:mem:taskdb
-Username: sa
-Password: (leave empty)
+JDBC URL:  jdbc:h2:mem:taskdb
+Username:  sa
+Password:  (leave empty)
 ```
+
+### Make yourself Admin
 ```sql
 UPDATE users SET role = 'ROLE_ADMIN' WHERE email = 'your@email.com';
 ```
+
+### Switch to MySQL (Production)
+Set these environment variables:
+```
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/taskmanagement_db?useSSL=false&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=your_user
+SPRING_DATASOURCE_PASSWORD=your_password
+SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQLDialect
+SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+```
+Then run `schema.sql` against your MySQL instance first.
 
 ---
 
 # Deployment (Render)
 
 1. Push code to GitHub
-2. Go to [render.com](https://render.com) → Login with GitHub
-3. New → Web Service → Connect the GitHub repo
-4. Environment: **Docker** (uses the project's `Dockerfile`)
-5. Set environment variables (optional — defaults to H2 if omitted):
+2. Go to [render.com](https://render.com) → New → Web Service
+3. Connect the GitHub repo
+4. Environment: **Docker**
+5. Set environment variables:
 
 ```
 SPRING_PROFILES_ACTIVE=prod
 JWT_SECRET=<long random string>
-SWAGGER_ENABLED=true
-
-# Optional — only needed to switch from H2 to MySQL
-DATABASE_URL=<your MySQL JDBC URL>
-DB_USERNAME=<your MySQL username>
-DB_PASSWORD=<your MySQL password>
-DB_DRIVER=com.mysql.cj.jdbc.Driver
-JPA_DIALECT=org.hibernate.dialect.MySQLDialect
+DATABASE_URL=<MySQL JDBC URL>
+DB_USERNAME=<username>
+DB_PASSWORD=<password>
 ```
 
-6. Click **Create Web Service** — Render builds the Docker image and deploys automatically
-7. Every push to the connected branch triggers an auto-redeploy
+6. Click **Create Web Service** — auto-deploys on every push
+
+---
+
+# Project Structure
+
+```
+src/
+├── main/
+│   ├── java/com/hashclick/taskmanagement/
+│   │   ├── config/          OpenApiConfig.java
+│   │   ├── controller/      AuthController, TaskController, AdminController
+│   │   │                    ProjectController, CommentController
+│   │   ├── dto/             Request/Response DTOs, PagedResponse
+│   │   ├── enums/           Role, TaskStatus, Priority
+│   │   ├── exception/       GlobalExceptionHandler, ResourceNotFoundException
+│   │   │                    DuplicateResourceException
+│   │   ├── model/           User, Task, Project, Comment
+│   │   ├── repository/      UserRepository, TaskRepository
+│   │   │                    ProjectRepository, CommentRepository
+│   │   ├── security/        JwtAuthFilter, JwtUtil, SecurityConfig
+│   │   └── service/         AuthService, TaskService, AdminService
+│   │                        ProjectService, CommentService
+│   │                        NotificationService, OverdueAlertScheduler
+│   └── resources/
+│       ├── application.properties
+│       ├── application-prod.properties
+│       ├── schema.sql        ← MySQL DDL with indexes
+│       ├── data.sql          ← Sample data
+│       └── static/index.html ← Frontend UI
+└── test/
+    └── java/com/hashclick/taskmanagement/
+        ├── repository/      ProjectRepositoryTest, CommentRepositoryTest
+        └── service/         ProjectServiceTest, CommentServiceTest
+```
 
 ---
 
 ## Author
 
 **Jeevan Kumar Gujja**
-Java Developer
+Java Developer Trainee
 Hashclick Solutions LLC
