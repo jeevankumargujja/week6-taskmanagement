@@ -1,9 +1,36 @@
 const {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   Header, Footer, AlignmentType, HeadingLevel, BorderStyle, WidthType,
-  ShadingType, VerticalAlign, PageNumber, LevelFormat, PageBreak
+  ShadingType, VerticalAlign, PageNumber, LevelFormat, PageBreak, ImageRun
 } = require("docx");
 const fs = require("fs");
+
+const SCREENSHOTS = "C:/Users/jeeva/week3-taskmanagement/Screenshots/week6";
+
+function screenshot(filename, widthPx, heightPx) {
+  const data = fs.readFileSync(`${SCREENSHOTS}/${filename}`);
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 120, after: 120 },
+    children: [new ImageRun({
+      type: "png",
+      data,
+      transformation: { width: widthPx, height: heightPx },
+      altText: { title: filename, description: filename, name: filename }
+    })]
+  });
+}
+
+function screenshotWithCaption(filename, caption, widthPx, heightPx) {
+  return [
+    screenshot(filename, widthPx, heightPx),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 0, after: 160 },
+      children: [new TextRun({ text: caption, size: 16, font: "Arial", color: "666666", italics: true })]
+    })
+  ];
+}
 
 const BLUE       = "1F3864";
 const LIGHT_BLUE = "D6E4F0";
@@ -565,6 +592,39 @@ const doc = new Document({
         bullet("Explore Docker Compose setup (app + MySQL)"),
         bullet("Add comprehensive integration tests with TestContainers"),
       ]),
+
+      // ── SECTION 10: SCREENSHOTS ───────────────────────────────────────────
+      new Paragraph({ children: [new PageBreak()] }),
+      heading1("10.  Application Screenshots"),
+
+      heading2("10.1  Login Page"),
+      ...screenshotWithCaption("01_login_page.png", "Fig 1 — Task Management System Login Page (localhost:8080)", 620, 390),
+
+      heading2("10.2  Swagger API Overview"),
+      ...screenshotWithCaption("02_swagger_overview.png", "Fig 2 — Swagger UI with all API groups (Admin, Comments, Projects, Tasks)", 620, 390),
+
+      heading2("10.3  Projects API Endpoints"),
+      ...screenshotWithCaption("03_swagger_projects.png", "Fig 3 — New Projects endpoints: CRUD, /tasks, /stats (Week 6 addition)", 620, 390),
+
+      heading2("10.4  Comments API Endpoints"),
+      ...screenshotWithCaption("04_swagger_comments.png", "Fig 4 — New Comments endpoints for task collaboration (Week 6 addition)", 620, 390),
+
+      heading2("10.5  H2 In-Memory Database Console"),
+      ...screenshotWithCaption("05_h2_console.png", "Fig 5 — H2 Console at /h2-console — dev database browser", 620, 390),
+
+      heading2("10.6  Projects API Response (Paginated)"),
+      ...screenshotWithCaption("06_api_projects_response.png", "Fig 6 — GET /api/projects — paginated response with taskCount and owner info", 620, 390),
+
+      heading2("10.7  Tasks Paginated API Response"),
+      ...screenshotWithCaption("07_api_tasks_paged.png", "Fig 7 — GET /api/tasks/paged — PagedResponse with page metadata", 620, 390),
+
+      heading2("10.8  Task Comments API Response"),
+      ...screenshotWithCaption("08_api_comments_response.png", "Fig 8 — GET /api/tasks/1/comments — comments with author info ordered newest-first", 620, 390),
+
+      heading2("10.9  Project Stats API Response"),
+      ...screenshotWithCaption("09_project_stats_response.png", "Fig 9 — GET /api/projects/1/stats — task status breakdown using aggregate query", 620, 390),
+
+      new Paragraph({ spacing: { before: 100, after: 100 }, children: [new TextRun("")] }),
 
       // ── SIGNATURE BLOCK ───────────────────────────────────────────────────
       new Paragraph({
