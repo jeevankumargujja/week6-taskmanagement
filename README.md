@@ -1,7 +1,7 @@
 # Task Management System — Hashclick Solutions
 
-> **Training Program | Week 3 → Week 6**
-> Java Developer Trainee — Jeevan Kumar Gujja
+> **Project Work | Week 3 → Week 6**
+> Java Developer — Jeevan Kumar Gujja
 
 ---
 
@@ -384,5 +384,5 @@ src/
 ## Author
 
 **Jeevan Kumar Gujja**
-Java Developer Trainee
+Java Developer
 Hashclick Solutions LLC
